@@ -2,9 +2,9 @@ package repository
 
 import (
 	"context"
+	"fmt"
 
 	"github.com/go-redis/redis/v9"
-	"github.com/staciiaz/g5-backend-service/model"
 )
 
 type SentimentRepository struct {
@@ -12,55 +12,23 @@ type SentimentRepository struct {
 }
 
 var ctx = context.Background()
+var key = "sentiment"
 
 func NewSentimentRepository(redisClient *redis.Client) *SentimentRepository {
 	return &SentimentRepository{redisClient: redisClient}
 }
 
-func (r *SentimentRepository) SentimentRatio() *model.SentimentRatio {
-	positive := r.GetSentiment("positive")
-	neutral := r.GetSentiment("neutral")
-	negative := r.GetSentiment("negative")
-
-	sum := positive + neutral + negative
-	if sum == 0 {
-		sum = 1
-	}
-
-	return &model.SentimentRatio{
-		Positive: positive / sum,
-		Neutral:  neutral / sum,
-		Negative: negative / sum,
-	}
-}
-
 func (r *SentimentRepository) GetSentiment(sentiment string) float64 {
-	c, _ := r.redisClient.Get(ctx, sentiment).Float64()
+	c, _ := r.redisClient.Get(ctx, fmt.Sprintf("%s:%s", key, sentiment)).Float64()
 	return c
 }
 
 func (r *SentimentRepository) IncrementSentiment(sentiment string, value float64) error {
-	_, err := r.redisClient.IncrByFloat(ctx, sentiment, value).Result()
+	_, err := r.redisClient.IncrByFloat(ctx, fmt.Sprintf("%s:%s", key, sentiment), value).Result()
 	return err
 }
 
-func (r *SentimentRepository) ClearSentiment() error {
-	var err error
-
-	_, err = r.redisClient.Set(ctx, "positive", 0, 0).Result()
-	if err != nil {
-		return err
-	}
-
-	_, err = r.redisClient.Set(ctx, "neutral", 0, 0).Result()
-	if err != nil {
-		return err
-	}
-
-	_, err = r.redisClient.Set(ctx, "negative", 0, 0).Result()
-	if err != nil {
-		return err
-	}
-
-	return nil
+func (r *SentimentRepository) SetSentiment(sentiment string, value float64) error {
+	_, err := r.redisClient.Set(ctx, fmt.Sprintf("%s:%s", key, sentiment), value, 0).Result()
+	return err
 }
