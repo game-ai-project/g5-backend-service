@@ -22,7 +22,7 @@ func ProvideRedisClient() *redis.Client {
 }
 
 func ProvideSentimentService(repo *repository.SentimentRepository) *service.SentimentService {
-	return service.NewSentimentService("http://104.215.1.237:5000", repo)
+	return service.NewSentimentService("http://localhost:5000", repo)
 }
 
 func main() {
