@@ -32,8 +32,7 @@ func main() {
 		ProvideRedisClient,
 		repository.NewSentimentRepository,
 		ProvideSentimentService,
-		controller.NewRouterController,
-		controller.NewSocketIOController,
+		controller.NewSentimentController,
 	}
 	for _, c := range constructors {
 		container.Provide(c)
@@ -47,12 +46,9 @@ func main() {
 		service.Refresh()
 	})
 
-	container.Invoke(func(controller *controller.RouterController) {
-		controller.Setup(router)
-	})
-
-	container.Invoke(func(controller *controller.SocketIOController) {
-		controller.Setup(router, server)
+	container.Invoke(func(controller *controller.SentimentController) {
+		controller.Provide(server, router)
+		controller.Setup()
 	})
 
 	go server.Serve()
