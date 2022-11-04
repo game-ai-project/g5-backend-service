@@ -24,9 +24,10 @@ services:
       start_period: 30s
   app:
     image: ghcr.io/game-ai-project/g5-backend-service:latest
-    # build: .
     ports:
       - 8000:8000
+    env_file:
+      - .env
     depends_on:
       sentiment:
         condition: service_healthy
@@ -37,4 +38,4 @@ services:
       resources:
         limits:
           cpus: '1.0'
-          memory: 1.5G
+          memory: 1G

@@ -8,7 +8,7 @@ RUN go build -o /go/bin/app
 FROM alpine:3.16.2 as runner
 
 WORKDIR /
-ENV PORT=8000
+ENV GIN_MODE=debug
 COPY --from=builder /go/bin/app /app
 EXPOSE 8000/tcp
 CMD ["/app"]

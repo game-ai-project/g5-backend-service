@@ -8,7 +8,7 @@ build:
 	@docker build -t $(IMAGE_NAME) .
 
 run:
-	@docker run --rm -p 8000:8000 $(IMAGE_NAME)
+	@docker run --rm -p 8000:8000 --env-file=.env $(IMAGE_NAME)
 
 publish:
 	@docker push $(IMAGE_NAME)

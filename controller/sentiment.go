@@ -1,6 +1,7 @@
 package controller
 
 import (
+	"log"
 	"net/http"
 
 	"github.com/gin-gonic/gin"
@@ -32,7 +33,11 @@ func (c *SentimentController) setupSocketIO() {
 	})
 
 	c.server.OnEvent("/", "message", func(s socketio.Conn, data *model.MessagePayload) {
-		result, _ := c.sentimentService.DoSingleAnalytic(data.Message)
+		result, err := c.sentimentService.DoSingleAnalytic(data.Message)
+		if err != nil {
+			log.Fatal(err)
+		}
+
 		s.Emit("result", result)
 	})
 

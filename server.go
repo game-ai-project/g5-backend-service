@@ -1,7 +1,9 @@
 package main
 
 import (
+	"context"
 	"log"
+	"os"
 
 	"github.com/gin-gonic/gin"
 	"github.com/go-redis/redis/v9"
@@ -12,17 +14,23 @@ import (
 	"go.uber.org/dig"
 )
 
-func ProvideRedisClient() *redis.Client {
-	redisClient := redis.NewClient(&redis.Options{
-		Addr:     "redis-18767.c302.asia-northeast1-1.gce.cloud.redislabs.com:18767",
-		Username: "default",
-		Password: "uyyKIkPB6o9QR1J81g1Xruy2vFKIlKWM",
+var ctx = context.Background()
+
+func ProvideRedisClient() (*redis.Client, error) {
+	client := redis.NewClient(&redis.Options{
+		Addr:     os.Getenv("REDIS_ADDR"),
+		Username: os.Getenv("REDIS_USER"),
+		Password: os.Getenv("REDIS_PASS"),
 	})
-	return redisClient
+	if err := client.Ping(ctx).Err(); err != nil {
+		return nil, err
+	}
+
+	return client, nil
 }
 
 func ProvideSentimentService(repo *repository.SentimentRepository) *service.SentimentService {
-	return service.NewSentimentService("http://localhost:5000", repo)
+	return service.NewSentimentService(os.Getenv("SENTIMENT_SERVICE"), repo)
 }
 
 func main() {
@@ -35,11 +43,14 @@ func main() {
 		controller.NewSentimentController,
 	}
 	for _, c := range constructors {
-		container.Provide(c)
+		if err := container.Provide(c); err != nil {
+			panic(err)
+		}
 	}
 
 	server := socketio.NewServer(nil)
 	router := gin.Default()
+	router.SetTrustedProxies([]string{"127.0.0.1"})
 	router.Use(gin.Logger())
 
 	container.Invoke(func(service *service.SentimentService) {
