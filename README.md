@@ -36,5 +36,5 @@ You can poll the sentiment ratio by `/poll` with `GET` method.
     "jeer": 0.25
 }
 ```
-Whenever you call this API, the Socket.IO will broadcast to the its connected client and the sentiment will be reset
+Whenever you call this API, the Socket.IO will broadcast to the its connected client and the sentiment will be reset. \
 You can call this API silently without reset the sentiment result by using `?silent=true`.
