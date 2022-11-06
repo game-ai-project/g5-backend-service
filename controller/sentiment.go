@@ -56,19 +56,9 @@ func (c *SentimentController) setupRouter() {
 		data := c.sentimentService.Poll()
 		if query.Get("silent") != "true" {
 			c.server.BroadcastToNamespace("/", "message", data)
+			c.sentimentService.Refresh()
 		}
 		ctx.JSON(http.StatusOK, data)
-	})
-
-	c.router.GET("/refresh", func(ctx *gin.Context) {
-		err := c.sentimentService.Refresh()
-		if err != nil {
-			ctx.JSON(http.StatusInternalServerError, err)
-		}
-
-		ctx.JSON(http.StatusOK, gin.H{
-			"message": "success",
-		})
 	})
 
 	c.router.GET("/socket.io/*any", gin.WrapH(c.server))
