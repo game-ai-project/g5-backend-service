@@ -1,0 +1,1 @@
+SENTIMENT_SERVICE=http://localhost:5000 REDIS_ADDR=redis-18767.c302.asia-northeast1-1.gce.cloud.redislabs.com:18767 REDIS_USER=default REDIS_PASS=uyyKIkPB6o9QR1J81g1Xruy2vFKIlKWM go run .

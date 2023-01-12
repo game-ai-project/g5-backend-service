@@ -1,7 +1,7 @@
 package controller
 
 import (
-	"log"
+	"context"
 	"net/http"
 
 	"github.com/gin-gonic/gin"
@@ -28,25 +28,11 @@ func (c *SentimentController) Provide(server *socketio.Server, router *gin.Engin
 
 func (c *SentimentController) setupSocketIO() {
 	c.server.OnConnect("/", func(s socketio.Conn) error {
-		s.SetContext("")
+		s.SetContext(context.Background())
+		s.RemoteHeader().Add("Access-Control-Allow-Origin", "*")
+		s.RemoteHeader().Add("Access-Control-Allow-Methods", "GET, POST, PUT, DELETE")
+		s.RemoteHeader().Add("Access-Control-Allow-Headers", "Content-Type")
 		return nil
-	})
-
-	c.server.OnEvent("/", "message", func(s socketio.Conn, data *model.MessagePayload) {
-		result, err := c.sentimentService.DoAnalytic(&model.SentimentIO{
-			Documents: []model.Document{
-				{
-					Language: "en",
-					ID:       "1",
-					Text:     data.Message,
-				},
-			},
-		})
-		if err != nil {
-			log.Fatal(err)
-		}
-
-		s.Emit("result", result)
 	})
 
 	c.server.OnError("/", func(s socketio.Conn, e error) {
@@ -66,6 +52,7 @@ func (c *SentimentController) setupRouter() {
 			c.server.BroadcastToNamespace("/", "message", data)
 			c.sentimentService.Refresh()
 		}
+
 		ctx.Writer.Header().Set("Access-Control-Allow-Origin", "*")
 		ctx.Writer.Header().Set("Access-Control-Allow-Methods", "GET, POST, PUT, DELETE")
 		ctx.Writer.Header().Set("Access-Control-Allow-Headers", "Content-Type")
@@ -78,8 +65,39 @@ func (c *SentimentController) setupRouter() {
 		ctx.JSON(http.StatusOK, data)
 	})
 
-	c.router.GET("/socket.io/*any", gin.WrapH(c.server))
-	c.router.POST("/socket.io/*any", gin.WrapH(c.server))
+	c.router.POST("/sentiment", func(ctx *gin.Context) {
+		var payload model.MessagePayload
+		if err := ctx.BindJSON(&payload); err != nil {
+			ctx.JSON(http.StatusInternalServerError, err)
+			return
+		}
+
+		result, err := c.sentimentService.DoAnalytic(&model.SentimentIO{
+			Documents: []model.Document{
+				{
+					Language: "en",
+					ID:       "1",
+					Text:     payload.Message,
+				},
+			},
+		})
+		if err != nil {
+			ctx.JSON(http.StatusInternalServerError, err)
+			return
+		}
+
+		ctx.Writer.Header().Set("Access-Control-Allow-Origin", "*")
+		ctx.Writer.Header().Set("Access-Control-Allow-Methods", "GET, POST, PUT, DELETE")
+		ctx.Writer.Header().Set("Access-Control-Allow-Headers", "Content-Type")
+
+		if ctx.Request.Method == "OPTIONS" {
+			ctx.AbortWithStatus(204)
+			return
+		}
+
+		ctx.JSON(http.StatusOK, result)
+	})
+
 	c.router.StaticFS("/public", http.Dir("../asset"))
 }
 
