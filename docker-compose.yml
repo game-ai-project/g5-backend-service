@@ -23,7 +23,8 @@ services:
       retries: 5
       start_period: 30s
   app:
-    image: ghcr.io/game-ai-project/g5-backend-service:latest
+    # image: ghcr.io/game-ai-project/g5-backend-service:latest
+    build: .
     ports:
       - 8000:8000
     env_file:

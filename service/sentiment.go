@@ -100,23 +100,3 @@ func (s *SentimentService) DoAnalytic(input *model.SentimentIO) (*model.Sentimen
 
 	return result, nil
 }
-
-func (s *SentimentService) DoSingleAnalytic(msg string) (*model.SentimentPayload, error) {
-	result, err := s.DoAnalytic(&model.SentimentIO{
-		Documents: []model.Document{
-			{
-				Language: "en",
-				ID:       "1",
-				Text:     msg,
-			},
-		},
-	})
-	if err != nil {
-		return nil, err
-	}
-
-	return &model.SentimentPayload{
-		Result:     result.Documents[0].Sentiment,
-		Confidence: result.Documents[0].ConfidenceScores.GetMax(),
-	}, nil
-}

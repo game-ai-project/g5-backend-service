@@ -5,6 +5,7 @@ import (
 	"log"
 	"os"
 
+	"github.com/gin-contrib/cors"
 	"github.com/gin-gonic/gin"
 	"github.com/go-redis/redis/v9"
 	socketio "github.com/googollee/go-socket.io"
@@ -50,7 +51,12 @@ func main() {
 
 	server := socketio.NewServer(nil)
 	router := gin.Default()
-	router.SetTrustedProxies([]string{"127.0.0.1"})
+	router.Use(cors.New(cors.Config{
+		AllowOrigins:     []string{"*"},
+		AllowHeaders:     []string{"Origin"},
+		ExposeHeaders:    []string{"Content-Length"},
+		AllowCredentials: true,
+	}))
 	router.Use(gin.Logger())
 
 	container.Invoke(func(service *service.SentimentService) {

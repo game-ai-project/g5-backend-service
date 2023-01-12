@@ -33,7 +33,15 @@ func (c *SentimentController) setupSocketIO() {
 	})
 
 	c.server.OnEvent("/", "message", func(s socketio.Conn, data *model.MessagePayload) {
-		result, err := c.sentimentService.DoSingleAnalytic(data.Message)
+		result, err := c.sentimentService.DoAnalytic(&model.SentimentIO{
+			Documents: []model.Document{
+				{
+					Language: "en",
+					ID:       "1",
+					Text:     data.Message,
+				},
+			},
+		})
 		if err != nil {
 			log.Fatal(err)
 		}
