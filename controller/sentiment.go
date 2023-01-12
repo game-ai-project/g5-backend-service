@@ -66,6 +66,15 @@ func (c *SentimentController) setupRouter() {
 			c.server.BroadcastToNamespace("/", "message", data)
 			c.sentimentService.Refresh()
 		}
+		ctx.Writer.Header().Set("Access-Control-Allow-Origin", "*")
+		ctx.Writer.Header().Set("Access-Control-Allow-Methods", "GET, POST, PUT, DELETE")
+		ctx.Writer.Header().Set("Access-Control-Allow-Headers", "Content-Type")
+
+		if ctx.Request.Method == "OPTIONS" {
+			ctx.AbortWithStatus(204)
+			return
+		}
+
 		ctx.JSON(http.StatusOK, data)
 	})
 

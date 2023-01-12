@@ -53,7 +53,8 @@ func main() {
 	router := gin.Default()
 	router.Use(cors.New(cors.Config{
 		AllowOrigins:     []string{"*"},
-		AllowHeaders:     []string{"Origin"},
+		AllowMethods:     []string{"GET", "POST", "PUT", "DELETE"},
+		AllowHeaders:     []string{"Origin", "Content-Type", "Authorization"},
 		ExposeHeaders:    []string{"Content-Length"},
 		AllowCredentials: true,
 	}))
@@ -71,5 +72,5 @@ func main() {
 	go server.Serve()
 	defer server.Close()
 
-	log.Fatal(router.Run(":8000"))
+	log.Fatal(router.Run(":8080"))
 }
